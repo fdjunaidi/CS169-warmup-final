@@ -1,121 +1,131 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0053)http://www.roscripts.com/uploads/CSS_forms/forms.html -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
+<title>Login Page</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" type="text/css" href="client.css">
+<link href="./index_files/style.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
-<!-- This is all the page independent functions.  The ones which directly interact with the page are inlined below. -->
-<script type="text/javascript" src="client.js"></script>
 </head>
 
-<center>
-<div id="login-page" class="box">
-  <div id="login-message" class="message"></div>
-  <center>
-    <form>
-      Username: <input id="login-username" type="text" name="username"><br>
-      Password: <input id="login-password" type="password" name="pwd"><br>
-      <input id="login-button" type="submit" value="Login">
-      <input id="add-user-button" type="submit" value="Add User">
-    </form>
-  </center>
+<div id="login">
+<div id="container">
+  <div id="top-main"></div>
+  <div id="leftSide">
+  <fieldset>
+  <legend>Login details</legend>
+  <form>
+    <label for="username">Username</label>
+	<div class="div_texbox">
+	<input id="username" type="text" name="username" class="username"><br>
+    </div>
+	<label for="password">Password</label>
+	<div class="div_texbox">
+	<input id="password" type="password" name="password" class="password"><br>
+    </div>
+	<div class="button_div">
+	<input id="log-in" type="submit" value="Login" class="buttons">
+    <input id="add-user" type="submit" value="Add User" class="buttons">
+	</div>
+  </form>
+  </fieldset>
+  </div>
+  <div class="clear"></div>
+  <div id="leftSide">
+    <p>Copyright (c) 2013 Febrianto. Design by <a href="http://www.roscripts.com/uploads/CSS_forms/forms.html" title="programming scripts, articles, tutorials, jobs, resources and code snippets">roScripts</a>.
+  </div>
+</div>
 </div>
 
-<div id="welcome-page" class="box">
-  <div id="welcome-message" class="message"></div>
-  <center>
-    <form>
-      <input type="submit" id="logout-button" value="Logout">
-    </form>
-  </center>
+<div id="welcome">
+<div id="container">
+  <div id="top-welcome"></div>
+  <div id="leftSide">
+  <fieldset>
+  <legend>Login details</legend>
+  <form>
+	<div class="button_div">
+	<input id="log-out" type="submit" value="Logout" class="buttons">
+	</div>
+  </form>
+  </fieldset>
+  </div>
+  <div class="clear"></div>
+  <div id="leftSide">
+    <p>Copyright (c) 2013 Febrianto. Design by <a href="http://www.roscripts.com/uploads/CSS_forms/forms.html" title="programming scripts, articles, tutorials, jobs, resources and code snippets">roScripts</a>.
+  </div>
 </div>
-</center>
+</div>
 
 <script type="text/javascript">
-<!--
-/* Put the page into a blank state until everything finishes loading
-   This is not the ideal thing to do, but better than nothing. */
-$('#login-page').hide()
-$('#welcome-page').hide()
-$('#login-username').val("")
-$('#login-password').val("")
-$('#login-message').html("Please enter your credentials below")
-$('#welcome-message').html("You should never see this text");
-
-/* setup the page so that only one of the forms is shown */
 $(document).ready(function() {
-   show_login_page();
- });
+  load_main()
+});
 
-/* Note: These two functions are deliberately written to ignore the starting
-   state.  This makes them slightly slower, but has the side effect of 
-   restoring any invariant that gets accidentally broken.*/
-function show_login_page(message) {
-  if(! message) message = "Please enter your credentials below";
-  $('#welcome-page').hide()
-  $('#login-username').val("")
-  $('#login-password').val("")
-  $('#login-message').html(message)
-  $('#login-page').show()
+$('#log-in').click(function() {
+   username = $('#username').val()
+   password = $('#password').val()
+   json_request("/users/login", { user: username, password: password }, function(data) { return generate_response(data, username); }, function(err) { alert('json request error on users/login'); });
+});
+
+$('#add-user').click(function() {
+   username = $('#username').val()
+   password = $('#password').val()
+   json_request("/users/add", { user: username, password: password }, function(data) { return generate_response(data, username); }, function(err) { alert('json request error on users/add'); });
+});
+	
+$('#log-out').click(function() {
+  load_main();
+});
+
+function json_request(page, dict, success, failure) {
+  $.ajax({
+    type: 'POST',
+    url: page,
+    data: JSON.stringify(dict),
+    contentType: "application/json",
+    dataType: "json",
+    success: success,
+    error: failure
+  });
 }
 
-function show_welcome_page(user, count) {
-   $('#login-page').hide();
-   $('#welcome-page').show();
-   $('#welcome-message').html("Welcome "+user+"<br>You have logged in "+count+" times.");
-}
-
-function handle_login_response(data, user) {
-  if( data.errCode > 0 ) {
-     c = data.count;
-     show_welcome_page(user, c);
+function error_code(code) {
+  if( code == -1 ) {
+    return ("Invalid username and password combination. Please try again. ");
+  } else if( code == -3 ) {
+    return ("The user name should not be empty and at most 128 characters long. Please try again.");
+  } else if( code == -2 ) {
+    return ("This user name already exists. Please try again.");
+  } else if( code == -4 ) {
+    return ("The password should be at most 128 characters long. Please try again");
   } else {
-     if( debug_flag ) {
-        if( data.errCode != ERR_BAD_CREDENTIALS ) {
-           alert( 'Illegal error code encounted for this state');
-        }
-     }
-     show_login_page( get_message_for_errcode(data.errCode) );  
+    return ("Unknown error occured: " + code);
   }
 }
 
-function handle_add_user_response(data, user) {
-  if( data.errCode > 0 ) {
-     c = data.count;
-     show_welcome_page(user, c);
-  } else {
-     if( debug_flag ) {
-        if( data.errCode != ERR_BAD_USERNAME && data.errCode != ERR_USER_EXISTS ) {
-           alert( 'Illegal error code encounted for this state');
-        }
-     }
-     show_login_page( get_message_for_errcode(data.errCode) );  
-  }
+function load_main() {
+  $('#login').show()
+  $('#welcome').hide()
+  $('#top-main').html("Please enter your credentials below")
 }
 
-$('#login-button').click(function() {
-   username = $('#login-username').val()
-   password = $('#login-password').val()
-   json_request("/users/login", { user: username, password: password }, function(data) { return handle_login_response(data, username); }, function(err) { alert('error occurred on request'); });
+function load_welcome(user, count) {
+  $('#login').hide()
+  $('#welcome').show()
+  $('#top-welcome').html("Welcome "+user+" You have logged in "+count+" times.")
+}
 
-   return false;
-});
-
-$('#add-user-button').click(function() {
-   username = $('#login-username').val()
-   password = $('#login-password').val()
-   json_request("/users/add", { user: username, password: password }, function(data) { return handle_add_user_response(data, username); }, function(err) {alert('error occurred on request'); });
-
-   return false;
-});
-
-$('#logout-button').click(function() {
-  show_login_page();
-
-  return false;
-});
--->
+function generate_response(data, user){
+  if( data.errCode > 0 ) {
+    c = data.count;
+    load_welcome(user, c);
+  } else {
+    load_main( error_code(data.errCode) );
+  }
+}
 </script>
 
 <body>
