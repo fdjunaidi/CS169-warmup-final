@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <!-- saved from url=(0053)http://www.roscripts.com/uploads/CSS_forms/forms.html -->
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 <title>Login Page</title>
@@ -11,7 +11,6 @@
 </head>
 
 <div id="login">
-<div id="container">
   <div id="top-main"></div>
   <div id="leftSide">
   <fieldset>
@@ -19,11 +18,11 @@
   <form>
     <label for="username">Username</label>
 	<div class="div_texbox">
-	<input id="username" type="text" name="username" class="username"><br>
+	<input id="login-username" type="text" name="username" class="username"><br>
     </div>
 	<label for="password">Password</label>
 	<div class="div_texbox">
-	<input id="password" type="password" name="password" class="password"><br>
+	<input id="login-password" type="password" name="password" class="password"><br>
     </div>
 	<div class="button_div">
 	<input id="log-in" type="submit" value="Login" class="buttons">
@@ -37,10 +36,8 @@
     <p>Copyright (c) 2013 Febrianto. Design by <a href="http://www.roscripts.com/uploads/CSS_forms/forms.html" title="programming scripts, articles, tutorials, jobs, resources and code snippets">roScripts</a>.
   </div>
 </div>
-</div>
 
 <div id="welcome">
-<div id="container">
   <div id="top-welcome"></div>
   <div id="leftSide">
   <fieldset>
@@ -57,7 +54,6 @@
     <p>Copyright (c) 2013 Febrianto. Design by <a href="http://www.roscripts.com/uploads/CSS_forms/forms.html" title="programming scripts, articles, tutorials, jobs, resources and code snippets">roScripts</a>.
   </div>
 </div>
-</div>
 
 <script type="text/javascript">
 $(document).ready(function() {
@@ -65,19 +61,22 @@ $(document).ready(function() {
 });
 
 $('#log-in').click(function() {
-   username = $('#username').val()
-   password = $('#password').val()
-   json_request("/users/login", { user: username, password: password }, function(data) { return generate_response(data, username); }, function(err) { alert('json request error on users/login'); });
+  username = $('#login-username').val()
+  password = $('#login-password').val()
+  json_request("/users/login", { user: username, password: password }, function(data) { return generate_response(data, username); }, function(err) { alert('json request error on users/login'); });
+  return false;
 });
 
 $('#add-user').click(function() {
-   username = $('#username').val()
-   password = $('#password').val()
-   json_request("/users/add", { user: username, password: password }, function(data) { return generate_response(data, username); }, function(err) { alert('json request error on users/add'); });
+  username = $('#login-username').val()
+  password = $('#login-password').val()
+  json_request("/users/add", { user: username, password: password }, function(data) { return generate_response(data, username); }, function(err) { alert('json request error on users/add'); });
+  return false;
 });
 	
 $('#log-out').click(function() {
   load_main();
+  return false;
 });
 
 function json_request(page, dict, success, failure) {
@@ -95,10 +94,10 @@ function json_request(page, dict, success, failure) {
 function error_code(code) {
   if( code == -1 ) {
     return ("Invalid username and password combination. Please try again. ");
-  } else if( code == -3 ) {
-    return ("The user name should not be empty and at most 128 characters long. Please try again.");
   } else if( code == -2 ) {
     return ("This user name already exists. Please try again.");
+  } else if( code == -3 ) {
+    return ("The user name should not be empty and at most 128 characters long. Please try again.");
   } else if( code == -4 ) {
     return ("The password should be at most 128 characters long. Please try again");
   } else {
@@ -106,22 +105,22 @@ function error_code(code) {
   }
 }
 
-function load_main() {
+function load_main(message) {
+  if ( !message ) message = "Please enter your credentials below"
   $('#login').show()
   $('#welcome').hide()
-  $('#top-main').html("Please enter your credentials below")
+  $('#top-main').html(message)
 }
 
 function load_welcome(user, count) {
   $('#login').hide()
   $('#welcome').show()
-  $('#top-welcome').html("Welcome "+user+" You have logged in "+count+" times.")
+  $('#top-welcome').html("Welcome "+user+"!<br> You have logged in "+count+" times.")
 }
 
 function generate_response(data, user){
   if( data.errCode > 0 ) {
-    c = data.count;
-    load_welcome(user, c);
+    load_welcome(user, data.count);
   } else {
     load_main( error_code(data.errCode) );
   }
